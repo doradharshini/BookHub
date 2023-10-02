@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <input type="checkbox" id="flip">
+    <div class="cover">
+      <div class="front">
+        <img src="https://youthincmag.com/wp-content/uploads/2019/05/Book-selling.jpg" alt="">
+      </div>
+    </div>
+    <div class="forms">
+        <div class="form-content">
+          <div class="login-form">
+            <div class="title">Login</div>
+            <form action="{% url 'login' %}" method="post">
+              {% csrf_token %}
+              <div class="input-boxes">
+                  <input type="email" placeholder="Enter your email" required name="loginemail" class="form-control" style="margin-bottom: 1rem;">
+                
+                  <input type="password" placeholder="Enter your password" required  name="loginpassword"  class="form-control" style="margin-bottom: 1rem;" minlength="8">
+                
+                <div class="text"><a href="#">Forgot password?</a></div>
+                <div class="button input-box">
+                  <input type="submit" value="Login">
+                </div>
+                <div class="text sign-up-text">Don't have an account? <label for="flip">Sigup now</label></div>
+              </div>
+          </form>
+      </div>
+        <div class="signup-form">
+          <div class="title">Signup</div>
+          <form action="{% url 'register' %}" method="post" id="register-form">
+            {% csrf_token %}
+            <div class="input-boxes">
+                {{form.as_p}}
+              <div class="button input-box">
+                <input type="submit" value="Create Account">
+              </div>
+              <div class="text sign-up-text">Already have an account? <label for="flip">Login now</label></div>
+            </div>
+      </form>
+    </div>
+    </div>
+    </div>
+  </div>
+
+  <script>
+
+    emailfield = document.querySelector('.signup-form #id_username');
+    emailfield.type = 'email';
+  </script>
+
+{% endblock %}

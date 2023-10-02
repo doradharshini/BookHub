@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% endblock %}
+
+{% block body %}
+    
+<div class="sellcontainer container text-center">
+    <form action="{% url 'sell' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="container text-start">
+            <h5>Book Details</h5>
+            <div class="mb-3 row">
+                <label for="bookname" class="col-sm-4 col-form-label">Book Name</label>
+                <div class="col-sm-7">
+                    <input type="text" class="form-control" id="bookname" name="bookname" value="{{bookname}}" maxlength="250" required>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label class="col-sm-4 col-form-label">Book Type</label>
+                <div class="col-sm-7">
+                    <select class="form-select booktype" name="booktype">
+                        <option value="Engineering Books" {% if booktype == "Engineering Books" %}selected{% endif %}>
+                            Engineering Books</option>
+                        <option value="School Books" {% if booktype == "School Books" %}selected{% endif %}>School Books
+                        </option>
+                        <option value="General" {% if booktype == "General" %}selected{% endif %}>General</option>
+                        <option value="Others" {% if booktype == "Others" %}selected{% endif %}>Others</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label class="col-sm-4 col-form-label">Book Category</label>
+                <div class="col-sm-7">
+                    <select class="form-select booksubtype" name="booksubtype">
+                        <option value='Computer Science and Engineering'>Computer Science and Engineering</option>
+                        <option value='Civil Engineering'>Civil Engineering</option>
+                        <option value='Mechanical Engineering'>Mechanical Engineering</option>
+                        <option value='Electrical Engineering'>Electrical Engineering</option>
+                        <option value='Chemical Engineering'>Chemical Engineering</option>
+                        <option value='Aerospace Engineering'>Aerospace Engineering</option>
+                        <option value='Environmental Engineering'>Environmental Engineering</option>
+                        <option value='Industrial Engineering'>Industrial Engineering</option>
+                        <option value='Materials Science and Engineering'>Materials Science and Engineering</option>
+                        <option value='Structural Engineering'>Structural Engineering</option>
+                        <option value='Petroleum Engineering'>Petroleum Engineering</option>
+                        <option value='Biomedical Engineering'>Biomedical Engineering</option>
+                        <option value='Geotechnical Engineering'>Geotechnical Engineering</option>
+                        <option value='Control Systems Engineering'>Control Systems Engineering</option>
+                        <option value='Robotics and Automation Engineering'>Robotics and Automation Engineering</option>
+                        <option value='Water Resources Engineering'>Water Resources Engineering</option>
+                        <option value='Transportation Engineering'>Transportation Engineering</option>
+                        <option value='Renewable Energy Engineering'>Renewable Energy Engineering</option>
+                        <option value='Engineering Mathematics'>Engineering Mathematics</option>
+                        <option value='Engineering Ethics and Professionalism'>Engineering Ethics and Professionalism
+                        </option>
+
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="newcondition" class="col-sm-4 col-form-label">Book Condition</label>
+                <div class="col-sm-7">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="bookcondition" id="newcondition" value="New"
+                            {% if bookcondition == 'New' %}checked{% endif %}>
+                        <label class="form-check-label" for="newcondition">New</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="bookcondition" id="excellentcondition"
+                            value="Excellent" {% if bookcondition == 'Excellent' %}checked{% endif %}>
+                        <label class="form-check-label" for="excellentcondition">Excellent</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="bookcondition" id="goodcondition"
+                            value="Good" checked {% if bookcondition == 'Good' %}checked{% endif %}>
+                        <label class="form-check-label" for="goodcondition">Good</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="bookcondition" id="faircondition"
+                            value="Fair" {% if bookcondition == 'Fair' %}checked{% endif %}>
+                        <label class="form-check-label" for="faircondition">Fair</label>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="bookpics" class="col-sm-4 col-form-label">Upload Photos</label>
+                <div class="col-sm-7">
+                    <div class="mb-3">
+                        <input class="form-control" type="file" id="bookpics" name="bookpics" multiple accept="image/*">
+                    </div>
+                    <p class="text-muted"><small>Select upto 4 images( Max : 5MB )</small></p>
+                </div>
+            </div>
+
+            <hr>
+            <h5>Price Details</h5>
+            <div class="mb-3 row">
+                <label for="price" class="col-sm-4 col-form-label">Your Price</label>
+                <div class="col-sm-7">
+                    <input type="number" class="form-control" name="price" id="price" placeholder="₹" min="50" max="9999" value="{{price}}" required>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="shippingcharge" class="col-sm-4 col-form-label">Shipping Charge</label>
+                <div class="col-sm-7">
+                    <input type="number" class="form-control" name="shipping" id="shipping" placeholder="₹" min="0" max="300" value="{{shipping}}">
+                    <p id="predictmoney"></p>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="paymentmode" class="col-sm-4 col-form-label">Payment mode</label>
+                <div class="col-sm-7">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="paymentmode" id="upi" value="UPI" checked
+                        {% if paymentmode == 'UPI' %}checked{% endif %}>
+                        <label class="form-check-label" for="upi">UPI Number</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="paymentmode" id="bankmode"
+                            value="Bank Transfer" {% if paymentmode == 'Bank Transfer' %}checked{% endif %}>
+                        <label class="form-check-label" for="bankmode">Bank Account</label>
+                    </div>
+                    <p class="text-muted"><small>We'll ask you for your Payment details once you receive order for this
+                            book.</small></p>
+                </div>
+            </div>
+
+            <hr>
+            <h5>Your Details</h5>
+            <div class="mb-3 row">
+                <label for="city" class="col-sm-4 col-form-label">Your City</label>
+                <div class="col-sm-7">
+                    <input type="text" class="form-control" id="city" name="city" value="{{city}}" required>
+                </div>
+            </div>
+            <div class="mb-3 row">
+                <label for="mobile" class="col-sm-4 col-form-label">Mobile number</label>
+                <div class="col-sm-7">
+                    <input type="text" class="form-control" id="mobile" name="mobile"
+                        placeholder="+91 xxxxxxxxxx" maxlength="13" value="{{mobile}}" required/>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" value={% if privatenumber == True %}True {% else %}False{% endif %} id="privatenumber"
+                            name="privatenumber" {% if privatenumber == True %}checked{% endif %}>
+                        <label class="form-check-label" for="privatenumber"> Keep my number private </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="uploadbtn text-center mt-4 mb-2">
+                <button type="submit" class="btn btn-outline-success">Upload</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+
+        var imageInput = document.getElementById("bookpics");
+        imageInput.addEventListener("change", function() {
+            var selectedImages = imageInput.files.length;
+            
+            if (selectedImages > 4) {
+            alert("You can select up to 4 images.");
+            imageInput.value = "";
+            }
+        });
+
+
+        $('.booktype').change(function () {
+            var selectedValue = $(this).val();
+            var url = '/get_book_subtype/?selected_value=' + selectedValue;
+
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                success: function (data) {
+                    var options = data.options;
+                    var secondDropdown = $('.booksubtype');
+
+                    secondDropdown.empty();
+
+                    $.each(options, function (index, option) {
+                        secondDropdown.append('<option value="' + option + '">' + option + '</option>');
+                    });
+                }
+            });
+        });
+    
+        var predictmoney = document.querySelector("#predictmoney")
+        var price = document.querySelector("#price")
+        var shipping = document.querySelector("#shipping")
+
+        price.addEventListener("keyup", function() {
+            shippingamount = isNaN(shipping.value) || shipping.value=='' ? 0 : parseInt(shipping.value) ;
+            priceamount =  isNaN(price.value) || price.value=='' ? 0 : parseInt(price.value);
+            predict(shippingamount,priceamount);
+        });
+
+        shipping.addEventListener("keyup", function() {
+            shippingamount = isNaN(shipping.value) || shipping.value=='' ? 0 : parseInt(shipping.value);
+            priceamount = isNaN(price.value) ||  price.value=='' ? 0 : parseInt(price.value);
+            predict(shippingamount,priceamount);
+        });
+
+        function predict(shippingamount,priceamount){
+            console.log(shippingamount,priceamount);
+            if( priceamount == 0 ){
+                predictmoney.innerHTML = "";
+            }else if( priceamount < 50 || priceamount > 9999){
+                predictmoney.innerHTML = "<small class='text-danger'>Price must between ₹50 - ₹9999 </small>"
+            }else if( shippingamount > 300 || shippingamount < 0){
+                predictmoney.innerHTML = "<small class='text-danger'>Shipping cost must between ₹0 - ₹300 </small>"
+            }else {
+                var final_amount = parseInt(priceamount) + parseInt(shippingamount);
+                final_amount -= parseInt(final_amount) * 0.1;
+                predictmoney.innerHTML = `<small class='text-success'>You'll get ₹${final_amount} in your account</small>`;
+        }
+        }
+    });
+</script>
+{% include 'footer.html' %}
+{% endblock %}

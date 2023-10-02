@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block css %}
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<!-- Swiper CSS -->
+<link rel="stylesheet" href="{% static 'css/swiper-bundle.min.css' %}">
+
+{% endblock %}
+
+{% block body %}
+<div class="card text-bg-dark headercard">
+    <img src="https://youthincmag.com/wp-content/uploads/2019/05/Book-selling.jpg" class="card-img"
+        alt="Backgroud Image">
+    <div class="card-img-overlay">
+        <h2 class="card-title">Find Your Next Favorite Book or Sell Your Old Treasures on<br>
+          <i class="fa fa-book-open"></i> <span>Book<span>Hub</span></span>!</h2>
+        <div class="mycard">
+            <div class="buybookcard">
+                <img src="{% static 'images/buy.png' %}" alt="Buy">
+                <a href="{% url 'books' %}" class="btn btn-outline-success">Buy Books</a>
+            </div>
+            <div class="sellbookcard">
+                <img src="{% static 'images/sell.png' %}" alt="Sell">
+                <a href="{% url 'sell' %}" class="btn btn-outline-success">Sell Books</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% if allbooks %}
+<div class="container">
+  <h5>Latest Collections</h5>
+    <div class="slide-container swiper">
+        <div class="slide-content">
+            <div class="card-wrapper swiper-wrapper">
+             
+              {% for book in allbooks %}
+                  <div class="card swiper-slide">
+                    <img src="{{ book.bookpics.first.file.url }}" class="card-img-top" alt="...">
+                    <div class="card-body">
+                      <h6 class="card-text">{{book.bookname}}</h6>
+                      <h5 class="card-text">₹{{book.total}}</h5>
+                      <a href="{% url 'book' book.id %}" class="btn btn-success">Buy Now</a>
+                    </div>
+                  </div>
+                {% endfor %}
+                
+            </div>
+        </div>
+        <div class="explore text-center">
+            <a href="{% url 'books' %}" class="btn btn-outline-success">Explore all books <i class="fa-solid fa-caret-down"></i></a>
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
+<div class="container">
+  <div class="row">
+    <div class="four col-md-3">
+      <div class="counter-box colored">
+        <span class="counter">82</span>
+        <p>Happy Customers</p>
+      </div>
+    </div>
+    <div class="four col-md-3">
+      <div class="counter-box">
+        <span class="counter">140</span>
+        <p>Total Books</p>
+      </div>
+    </div>
+    <div class="four col-md-3">
+      <div class="counter-box">
+        <span class="counter">289</span>
+        <p>Available Books</p>
+      </div>
+    </div>
+    <div class="four col-md-3">
+      <div class="counter-box">
+        <span class="counter">620</span>
+        <p>Sold Books</p>
+      </div>
+    </div>
+    </div>
+</div>
+
+<div class="container">
+  <div class="services-container section-container">
+    <div class="container">
+        <div class="row">
+            <div class="col services section-description">
+                <h2>How to sell your old books?</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 services-box wow fadeInUp">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>1.Post your books</h3>
+                        <p>Post your books on BookHub describing your book details to sell your old books online.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 services-box wow fadeInDown">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>2.Set the price</h3>
+                        <p>Set the price for your books at which you want to sell them.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 services-box wow fadeInUp">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>3.Get paid</h3>
+                        <p>You will get money into your account once you receive an order for your book.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <hr>
+  
+  <div class="services-container section-container">
+    <div class="container">
+        <div class="row">
+            <div class="col services section-description wow fadeIn">
+                <h2>How to buy books in BookHub?</h2>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 services-box wow fadeInUp">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>1.Select your books</h3>
+                        <p>Search from over thousands of used books listed on BookHub.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 services-box wow fadeInDown">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>2.Place the order</h3>
+                        <p>Then simply place the order by clicking on 'Buy Now' button.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 services-box wow fadeInUp">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>3.Get the books</h3>
+                        <p>The books will be delivered to you at your doorstep!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
+
+{% include 'footer.html' %}
+
+<!-- Swiper JS -->
+<script src="{% static 'js/swiper-bundle.min.js' %}"></script>
+<script>
+    var swiper = new Swiper(".slide-content", {
+        slidesPerView: 5,
+        spaceBetween: 15,
+        loop: true,
+        centerSlide: 'true',
+        fade: 'true',
+        autoplay: {
+        delay: 2500,
+        disableOnInteraction: false,
+      },
+        breakpoints: {
+            0: {
+                slidesPerView: 1,
+            },
+            520: {
+                slidesPerView: 2,
+            },
+            950: {
+                slidesPerView: 5,
+            },
+        },
+    });
+</script>
+{% endblock %}

@@ -4,9 +4,11 @@ from . import models
 from django.contrib import messages
 import razorpay
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth import authenticate,login,logout,get_user_model
 from django.contrib.auth.models import User
 from . import keys,forms
+from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
+from django.urls import reverse_lazy
 
 def home(request):
     allbooks = models.Book.objects.filter(status = 'available').order_by("-uploaded")[:10]
@@ -24,49 +26,54 @@ def get_book_subtype(request):
     return JsonResponse({'options': dependent_options})
 
 def sell(request):
-    if request.method == 'POST':
-        bookname = request.POST['bookname']
-        booktype = request.POST['booktype']
-        booksubtype = request.POST['booksubtype']
-        bookcondition = request.POST['bookcondition']
-        bookpics = request.FILES.getlist('bookpics')
-        price = request.POST['price']
-        shipping = request.POST['shipping']
-        paymentmode = request.POST['paymentmode']
-        city = request.POST['city']
-        mobile = request.POST['mobile']
-        try:
-            privatenumber = bool(request.POST['privatenumber'])
-        except:
-            privatenumber = False
-            
-        if bookname and booktype and booksubtype and bookcondition and price and paymentmode and city and mobile:
-            if bookpics:
-                bookid = models.Book.objects.create(seller=request.user,bookname=bookname,booktype=booktype,
-                                        booksubtype=booksubtype,bookcondition=bookcondition,
-                                        price=price,shipping=shipping,paymentmode=paymentmode,city=city,mobile=mobile
-                                        ,privatenumber=privatenumber)
-                for pic in bookpics:
-                    image = models.BookImage.objects.create(file=pic,seller=request.user,bookid=bookid)
-                    bookid.bookpics.add(image)
-
-                messages.success(request, 'Book Uploaded successfully!')
-                return redirect('book',bookid.id)
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            bookname = request.POST['bookname']
+            booktype = request.POST['booktype']
+            booksubtype = request.POST['booksubtype']
+            bookcondition = request.POST['bookcondition']
+            bookpics = request.FILES.getlist('bookpics')
+            price = request.POST['price']
+            shipping = request.POST['shipping']
+            paymentmode = request.POST['paymentmode']
+            city = request.POST['city']
+            mobile = request.POST['mobile']
+            try:
+                privatenumber = bool(request.POST['privatenumber'])
+            except:
+                privatenumber = False
                 
+            if bookname and booktype and booksubtype and bookcondition and price and paymentmode and city and mobile:
+                if bookpics:
+                    bookid = models.Book.objects.create(seller=request.user,bookname=bookname,booktype=booktype,
+                                            booksubtype=booksubtype,bookcondition=bookcondition,
+                                            price=price,shipping=shipping,paymentmode=paymentmode,city=city,mobile=mobile
+                                            ,privatenumber=privatenumber)
+                    for pic in bookpics:
+                        image = models.BookImage.objects.create(file=pic,seller=request.user,bookid=bookid)
+                        bookid.bookpics.add(image)
+
+                    messages.success(request, 'Book Uploaded successfully!')
+                    return redirect('book',bookid.id)
+                    
+                else:
+                    messages.error(request, 'Please upload your book pictures!')
+                    return render(request, "sell.html", {'bookname':bookname,'booktype':booktype,
+                                        'booksubtype':booksubtype,'bookcondition':bookcondition,
+                                        'price':price,'shipping':shipping,'paymentmode':paymentmode,'city':city,
+                                        'mobile':mobile ,'privatenumber':privatenumber})
             else:
-                messages.error(request, 'Please upload your book pictures!')
+                messages.error(request, 'Please fill all required details!')
                 return render(request, "sell.html", {'bookname':bookname,'booktype':booktype,
-                                       'booksubtype':booksubtype,'bookcondition':bookcondition,
-                                       'price':price,'shipping':shipping,'paymentmode':paymentmode,'city':city,
-                                       'mobile':mobile ,'privatenumber':privatenumber})
-        else:
-            messages.error(request, 'Please fill all required details!')
-            return render(request, "sell.html", {'bookname':bookname,'booktype':booktype,
-                                       'booksubtype':booksubtype,'bookcondition':bookcondition,
-                                       'price':price,'shipping':shipping,'paymentmode':paymentmode,'city':city,
-                                       'mobile':mobile ,'privatenumber':privatenumber})
-   
-    return render(request, "sell.html", {})
+                                        'booksubtype':booksubtype,'bookcondition':bookcondition,
+                                        'price':price,'shipping':shipping,'paymentmode':paymentmode,'city':city,
+                                        'mobile':mobile ,'privatenumber':privatenumber})
+    
+        return render(request, "sell.html", {})
+    else:
+        messages.success(request, 'Sign in to get started with selling your books!')
+        return redirect('login')
+    
 
 def books(request):
     allbooks = models.Book.objects.filter(status = 'available').order_by("-uploaded")
@@ -79,25 +86,29 @@ def book(request, bookid):
 
 razorpay_client = razorpay.Client(auth=(keys.RAZOR_KEY_ID, keys.RAZOR_KEY_SECRET))
 def checkout(request, bookid):
-    mybook = get_object_or_404(models.Book, id = bookid, status = 'available')
-    
-    amount = int(mybook.total) * 100  # Amount in paise
-    payment_data = {
-        'amount': amount,
-        'currency': 'INR',
-        'notes': {
-            'email': 'admin@bookhub.com',#
-        },
-    }
-    order = razorpay_client.order.create(data=payment_data)
-    context = {
-        'order_id': order['id'],
-        'razorpay_merchant_key': keys.RAZOR_KEY_ID,
-        'amount': amount,
-        'mybook':mybook,
-    }
+    if request.user.is_authenticated:
+        mybook = get_object_or_404(models.Book, id = bookid, status = 'available')
+        
+        amount = int(mybook.total) * 100  # Amount in paise
+        payment_data = {
+            'amount': amount,
+            'currency': 'INR',
+            'notes': {
+                'email': 'admin@bookhub.com',#
+            },
+        }
+        order = razorpay_client.order.create(data=payment_data)
+        context = {
+            'order_id': order['id'],
+            'razorpay_merchant_key': keys.RAZOR_KEY_ID,
+            'amount': amount,
+            'mybook':mybook,
+        }
 
-    return render(request, "checkout.html", context)
+        return render(request, "checkout.html", context)
+    else:
+        messages.success(request, 'Sign in to explore and purchase books!')
+        return redirect('login')
 
 def shippingdetails(request):
     if request.method == "POST":
@@ -188,9 +199,12 @@ def registeruser(request):
     if request.method == "POST":
         form = forms.RegisterForm(request.POST)
         if form.is_valid():
-            form.save()
             username = form.cleaned_data['username']
             password1 = form.cleaned_data['password1']
+            first_name = form.cleaned_data['first_name']
+            user = get_user_model().objects.create_user(username=username, email=username, password=password1)
+            user.first_name = first_name
+            user.save()
             user = authenticate(request,username=username,password=password1)
             login(request, user)
             return redirect('home')
@@ -263,3 +277,19 @@ def changepassword(request):
 
 def mybooks(request):
     return render(request, 'mybooks.html',{})
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'password_reset.html'
+    # email_template_name = 'custom_password_reset_email.html'
+    success_url = reverse_lazy('password_reset_done')
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    template_name = 'password_reset_change.html'
+
+def password_reset_done(request):
+    messages.success(request, 'Check your email for a password reset link and log in.')
+    return redirect('login')
+
+def reset_done(request):
+    messages.success(request, 'Password reset successful. Log in to explore.')
+    return redirect('login')

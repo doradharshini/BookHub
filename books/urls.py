@@ -9,6 +9,7 @@ urlpatterns = [
     path('books/', views.books , name="books"),
     path('books/<int:bookid>', views.book , name="book"),
     path('checkout/<int:bookid>', views.checkout , name="checkout"),
+    path('ebookcheckout/<int:bookid>', views.ebookcheckout , name="ebookcheckout"),
     path('shippingdetails/', views.shippingdetails, name='shippingdetails'),
     path('paymenthandler/', views.paymenthandler, name='paymenthandler'),
     path('myorders/', views.myorders , name="myorders"),
@@ -23,4 +24,5 @@ urlpatterns = [
     path('password_reset/done/', views.password_reset_done, name='password_reset_done'),
     path('reset/<uidb64>/<token>/', views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', views.reset_done, name='password_reset_complete'),
+    path('download/<int:bookid>/', views.download_softcopy, name='download_softcopy'),
 ]

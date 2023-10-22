@@ -18,21 +18,39 @@
         <div class="row">
             <div class="col-md-6">
                 <div id="slider" class="owl-carousel product-slider">
-                    {% if mybook.bookpics.all %}
-                    {% for pic in mybook.bookpics.all %}
+                    {% if mybook.bookvideo.all %}
+                    {% for video in mybook.bookvideo.all %}
                         <div class="item">
-                            <img src="{{pic.file.url}}" />
+                            <video style="width: 100%; height: 100%;" muted autoplay controls controlsList="nodownload">
+                                <source src="{{video.file.url}}" type="video/mp4">
+                            </video>
                         </div>
                     {% endfor %}
+                 {% endif %}
+                    {% if mybook.bookpics.all %}
+                        {% for pic in mybook.bookpics.all %}
+                            <div class="item">
+                                <img src="{{pic.file.url}}" />
+                            </div>
+                        {% endfor %}
                     {% endif %}
                 </div>
                 <div id="thumb" class="owl-carousel product-thumb">
-                    {% if mybook.bookpics.all %}
-                    {% for pic in mybook.bookpics.all %}
+                    {% if mybook.bookvideo.all %}
+                    {% for video in mybook.bookvideo.all %}
                         <div class="item">
-                            <img src="{{pic.file.url}}" />
+                            <video style="width: 100%; height: 100%;" muted loop poster="https://img.icons8.com/cotton/64/cinema-.png">
+                                <source src="{{video.file.url}}" type="video/mp4">
+                            </video>
                         </div>
                     {% endfor %}
+                 {% endif %}
+                    {% if mybook.bookpics.all %}
+                        {% for pic in mybook.bookpics.all %}
+                            <div class="item">
+                                <img src="{{pic.file.url}}" />
+                            </div>
+                        {% endfor %}
                     {% endif %}
                 </div>
             </div>
@@ -75,11 +93,19 @@
                     </table>
                     <div class="row" style="display: flex;align-items: center;justify-content: center;">
                         {% if mybook.status == "available" %}
+                        {% if mybook.booksoftcopy.all %}
+                            <a href="{% url 'ebookcheckout' mybook.id %}" class="btn btn-outline-dark" style="width: fit-content;"><i class="fa-solid fa-book"></i> Buy eBook</a> &nbsp;&nbsp; 
+                        {% endif %}
                         <a href="{% url 'checkout' mybook.id %}" class="btn btn-outline-success" style="width: fit-content;"><i class="fa-solid fa-cart-shopping"></i> Buy Now</a>
                         {% else %}
                         <a class="btn btn-outline-danger disabled" style="width: fit-content;"><i class="fa-solid fa-ban"></i> Sold</a>
                         {% endif %}
                     </div>
+                    {% if mybook.booksoftcopy.all %}
+                    <div style="display: flex;align-items: center;justify-content: center;margin-top: 5px;">
+                        <small class="text-muted">Ebooks get an extra 10% off.</small>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -100,7 +126,7 @@
         var syncedSecondary = true;
         slider.owlCarousel({
             items: 1,
-            slideSpeed: 1500,
+            slideSpeed: 2000,
             nav: false,
             autoplay: true,
             dots: false,

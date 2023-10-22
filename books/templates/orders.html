@@ -48,12 +48,21 @@
                                         <div class="media-body">
                                             <span class="float-right text-success">Order ID : {{order.orderid}}</span>
                                             <h4 class="text-gray mb-1"> {{ order.book.bookname }}</h4>
-                                            <p class="text-gray mb-3 text-muted"> <small>Excepted Delivery : 10 Days</small></p>
+                                            {% if order.type != 'ebook' %}
+                                                <p class="text-gray mb-3 text-muted"> <small>Excepted Delivery : 5 Days</small></p>
+                                            {%endif%}
                                             <hr>
+                                            {% if order.type == 'ebook' %}
+                                            <div class="float-right">
+                                                <a class="btn btn-sm btn-outline-success" href="{% url 'download_softcopy' order.book.id %}"> Download</a>
+                                                <a class="btn btn-sm btn-primary" href="#"> View Receipt</a>
+                                            </div>
+                                            {%else%}
                                             <div class="float-right">
                                                 <a class="btn btn-sm btn-outline-primary" href="#"> Cancel</a>
                                                 <a class="btn btn-sm btn-primary" href="#"> View Receipt</a>
                                             </div>
+                                            {%endif%}
                                             <p class="mb-0 text-black text-primary pt-2"><small><span class="text-black font-weight-bold"> Total Paid:</span> ₹{{order.amount}}</small> </p>
                                         </div>
                                     </div>

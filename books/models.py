@@ -38,6 +38,8 @@ class Book(models.Model):
     privatenumber = models.BooleanField(default=False)
     uploaded = models.DateTimeField(auto_now_add=True)
     bookpics = models.ManyToManyField('BookImage')
+    bookvideo = models.ManyToManyField('BookVideo')
+    booksoftcopy = models.ManyToManyField('BookSoftCopy')
     status = models.CharField(max_length=50, default="available")
 
     def save(self, *args, **kwargs):
@@ -52,6 +54,16 @@ class BookImage(models.Model):
     file = models.FileField(upload_to="book_pics/",null=True)
     seller = models.ForeignKey(User, on_delete=models.CASCADE)
     bookid = models.ForeignKey(Book, on_delete=models.CASCADE)
+
+class BookVideo(models.Model):
+    file = models.FileField(upload_to="book_videos/",null=True)
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='video_seller')
+    bookid = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='video_bookid')
+
+class BookSoftCopy(models.Model):
+    file = models.FileField(upload_to="book_softcopy/",null=True)
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sofycopy_seller')
+    bookid = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='sofycopy_bookid')
 
 class Order(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
@@ -69,3 +81,4 @@ class Order(models.Model):
     state = models.CharField(max_length=255)
     pincode = models.CharField(max_length=255)
     createddate = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    type = models.CharField(max_length=10, blank=True, null=True)

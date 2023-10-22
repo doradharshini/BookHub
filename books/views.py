@@ -1,5 +1,5 @@
 from django.shortcuts import render , redirect , get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, FileResponse
 from . import models
 from django.contrib import messages
 import razorpay
@@ -33,6 +33,8 @@ def sell(request):
             booksubtype = request.POST['booksubtype']
             bookcondition = request.POST['bookcondition']
             bookpics = request.FILES.getlist('bookpics')
+            booksoftcopy = request.FILES.getlist('booksoftcopy')
+            bookvideo = request.FILES.getlist('bookvideo')
             price = request.POST['price']
             shipping = request.POST['shipping']
             paymentmode = request.POST['paymentmode']
@@ -47,11 +49,19 @@ def sell(request):
                 if bookpics:
                     bookid = models.Book.objects.create(seller=request.user,bookname=bookname,booktype=booktype,
                                             booksubtype=booksubtype,bookcondition=bookcondition,
-                                            price=price,shipping=shipping,paymentmode=paymentmode,city=city,mobile=mobile
-                                            ,privatenumber=privatenumber)
+                                            price=price,shipping=shipping,paymentmode=paymentmode,city=city,
+                                            mobile=mobile,privatenumber=privatenumber)
                     for pic in bookpics:
-                        image = models.BookImage.objects.create(file=pic,seller=request.user,bookid=bookid)
-                        bookid.bookpics.add(image)
+                        file = models.BookImage.objects.create(file=pic,seller=request.user,bookid=bookid)
+                        bookid.bookpics.add(file)
+
+                    for softcopy in booksoftcopy:
+                        file = models.BookSoftCopy.objects.create(file=softcopy,seller=request.user,bookid=bookid)
+                        bookid.booksoftcopy.add(file)
+
+                    for video in bookvideo:
+                        file = models.BookVideo.objects.create(file=video,seller=request.user,bookid=bookid)
+                        bookid.bookvideo.add(file)
 
                     messages.success(request, 'Book Uploaded successfully!')
                     return redirect('book',bookid.id)
@@ -83,7 +93,6 @@ def book(request, bookid):
     mybook = get_object_or_404(models.Book, id = bookid)
     return render(request, "book.html", {'mybook':mybook})
     
-
 razorpay_client = razorpay.Client(auth=(keys.RAZOR_KEY_ID, keys.RAZOR_KEY_SECRET))
 def checkout(request, bookid):
     if request.user.is_authenticated:
@@ -110,24 +119,60 @@ def checkout(request, bookid):
         messages.success(request, 'Sign in to explore and purchase books!')
         return redirect('login')
 
+def ebookcheckout(request, bookid):
+    if request.user.is_authenticated:
+        mybook = get_object_or_404(models.Book, id = bookid, status = 'available')
+        
+        amount = int(int(mybook.total) * 0.9) * 100  # Amount in paise with 10% Extra Discount
+        payment_data = {
+            'amount': amount,
+            'currency': 'INR',
+            'notes': {
+                'email': 'admin@bookhub.com',#
+            },
+        }
+        order = razorpay_client.order.create(data=payment_data)
+        context = {
+            'order_id': order['id'],
+            'razorpay_merchant_key': keys.RAZOR_KEY_ID,
+            'amount': amount,
+            'discount':int(int(mybook.total) - (int(mybook.total) * 0.9)),
+            'total':int(int(mybook.total) * 0.9),
+            'mybook':mybook,
+        }
+
+        return render(request, "ebook_checkout.html", context)
+    else:
+        messages.success(request, 'Sign in to explore and purchase books!')
+        return redirect('login')
+
 def shippingdetails(request):
     if request.method == "POST":
         orderid = request.POST['hiddenorderid']
         bookid = request.POST['hiddenbook']
+        hiddentype = request.POST['hiddentype']
         firstName = request.POST['firstName']
         lastName = request.POST['lastName']
         email = request.POST['email']
-        address = request.POST['address']
-        address2 = request.POST['address2']
-        city = request.POST['city']
-        state = request.POST['state']
-        pincode = request.POST['pincode']
         
-        mybook = get_object_or_404(models.Book, id=bookid)
-        models.Order.objects.create(orderid = orderid, buyer = request.user, amount = int(mybook.total) , book = mybook,
+        if hiddentype=="ebook":
+            mybook = get_object_or_404(models.Book, id=bookid)
+            amount = int(int(mybook.total) - (int(mybook.total)*0.9))
+            models.Order.objects.create(orderid = orderid, buyer = request.user, amount = amount , book = mybook,
                                     firstName=firstName,lastName=lastName,
-                                    email=email,address=address,address2=address2, 
-                                    city=city,state=state,pincode=pincode )
+                                    email=email,address="-",address2="-", 
+                                    city="-",state="-",pincode="-" ,type="ebook")
+        else:
+            address = request.POST['address']
+            address2 = request.POST['address2']
+            city = request.POST['city']
+            state = request.POST['state']
+            pincode = request.POST['pincode']
+            mybook = get_object_or_404(models.Book, id=bookid)
+            models.Order.objects.create(orderid = orderid, buyer = request.user, amount = int(mybook.total) , book = mybook,
+                                        firstName=firstName,lastName=lastName,
+                                        email=email,address=address,address2=address2, 
+                                        city=city,state=state,pincode=pincode )
 
         return JsonResponse({'status': mybook})
 
@@ -152,10 +197,12 @@ def paymenthandler(request):
                     myorder.status = 'captured'
                     myorder.payment_id = payment_id
                     myorder.save()
-                
-                    book = get_object_or_404(models.Book, id=myorder.book.id)
-                    book.status = 'sold'
-                    book.save()
+                    if myorder.type == "ebook":
+                        pass
+                    else:
+                        book = get_object_or_404(models.Book, id=myorder.book.id)
+                        book.status = 'sold'
+                        book.save()
 
                     return render(request, 'payment.html',{'status':'success'})
                 else:
@@ -293,3 +340,9 @@ def password_reset_done(request):
 def reset_done(request):
     messages.success(request, 'Password reset successful. Log in to explore.')
     return redirect('login')
+
+def download_softcopy(request, bookid):
+    softcopy = get_object_or_404(models.BookSoftCopy, bookid=bookid)
+    response = FileResponse(open(softcopy.file.path, 'rb'))
+    response['Content-Disposition'] = f'attachment; filename="{softcopy.file.name}"'
+    return response

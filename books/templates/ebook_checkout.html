@@ -28,15 +28,22 @@
                     </div>
                     <span class="text-success">-₹49</span>
                 </li>
+                <li class="list-group-item d-flex justify-content-between bg-light">
+                    <div class="text-success">
+                        <h6 class="my-0">Extra Discount for E-Book</h6>
+                        <small>10%</small>
+                    </div>
+                    <span class="text-success">-₹{{discount}}</span>
+                </li>
                 <li class="list-group-item d-flex justify-content-between">
                     <span>Total</span>
-                    <strong>₹{{mybook.total}}</strong>
+                    <strong>₹{{total}}</strong>
                 </li>
             </ul>
         </div>
 
         <div class="col-md-8 order-md-1">
-            <h4 class="mb-3">Billing address</h4>
+            <br><br>
             <form method="post" id="checkout-form" action="{% url 'shippingdetails' %}">
                 {% csrf_token %}
                 <div class="row">
@@ -55,43 +62,13 @@
                     <input type="email" class="form-control" name="email" id="email" required>
                 </div>
 
-                <div class="mb-3">
-                    <label for="address">Address</label>
-                    <input type="text" class="form-control" name="address" id="address" placeholder="" required>
-                </div>
-
-                <div class="mb-3">
-                    <label for="address2">Address 2 <span class="text-muted">(Optional)</span></label>
-                    <input type="text" class="form-control" name="address2" id="address2" placeholder="">
-                </div>
-
-                <div class="row">
-                    <div class="col-md-4">
-                        <div>
-                            <label for="city">City</label>
-                            <input type="text" class="form-control" name="city" id="city" placeholder="" required>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div>
-                            <label for="state">State</label>
-                            <input type="text" class="form-control" name="state" id="state" placeholder="" required>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div>
-                            <label for="pincode">Pincode</label>
-                            <input type="text" class="form-control" name="pincode" id="pincode" placeholder="" required>
-                        </div>
-                    </div>
-                </div>
                 <div class="col mt-4 text-center">
                     <button class="btn btn-success " type="submit"  id="pay-btn">Proceed to pay</button>
                 </div>
 
                 <input type="hidden" name="hiddenorderid" value="{{ order_id }}">
                 <input type="hidden" name="hiddenbook" value="{{ mybook.id }}">
-                <input type="hidden" name="hiddentype" value="book">
+                <input type="hidden" name="hiddentype" value="ebook">
             </form>
             
            

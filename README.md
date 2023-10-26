@@ -19,6 +19,13 @@ Go to the project directory
 ```bash
   cd BookHub/
 ```
+ 
+Create RazorPay Account : [RazorPay](https://www.geeksforgeeks.org/razorpay-integration-in-django/)
+
+```bash
+  RAZOR_KEY_ID = "CHANGE_ME"
+  RAZOR_KEY_SECRET = "CHANGE_ME"
+```
 
 Install dependencies
 

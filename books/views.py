@@ -1,5 +1,5 @@
 from django.shortcuts import render , redirect , get_object_or_404
-from django.http import JsonResponse, FileResponse
+from django.http import JsonResponse, FileResponse, HttpResponse
 from . import models
 from django.contrib import messages
 import razorpay
@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from . import keys,forms
 from django.contrib.auth.views import PasswordResetView, PasswordResetConfirmView
 from django.urls import reverse_lazy
+from django.core.mail import send_mail
 
 def home(request):
     allbooks = models.Book.objects.filter(status = 'available').order_by("-uploaded")[:10]
@@ -154,10 +155,9 @@ def shippingdetails(request):
         firstName = request.POST['firstName']
         lastName = request.POST['lastName']
         email = request.POST['email']
-        
+        mybook = get_object_or_404(models.Book, id=bookid)
         if hiddentype=="ebook":
-            mybook = get_object_or_404(models.Book, id=bookid)
-            amount = int(int(mybook.total) - (int(mybook.total)*0.9))
+            amount = int(mybook.total)*0.9
             models.Order.objects.create(orderid = orderid, buyer = request.user, amount = amount , book = mybook,
                                     firstName=firstName,lastName=lastName,
                                     email=email,address="-",address2="-", 
@@ -168,14 +168,19 @@ def shippingdetails(request):
             city = request.POST['city']
             state = request.POST['state']
             pincode = request.POST['pincode']
-            mybook = get_object_or_404(models.Book, id=bookid)
             models.Order.objects.create(orderid = orderid, buyer = request.user, amount = int(mybook.total) , book = mybook,
                                         firstName=firstName,lastName=lastName,
                                         email=email,address=address,address2=address2, 
                                         city=city,state=state,pincode=pincode )
 
-        return JsonResponse({'status': mybook})
+        mybook = models.Book.objects.filter(id=bookid).values('id', 'bookname', 'price').first()
+        response_data = {
+            'status': mybook,
+        }
 
+        return JsonResponse(response_data)
+
+    return JsonResponse({'status': 'error'})
 
 @csrf_exempt
 def paymenthandler(request):
@@ -198,7 +203,24 @@ def paymenthandler(request):
                     myorder.payment_id = payment_id
                     myorder.save()
                     if myorder.type == "ebook":
-                        pass
+                        subject = 'Download Your eBook'
+                        message = (
+                                    "Dear User,\n" +
+                                    "We're thrilled to let you know that your eBook is ready for download!\n" +
+                                    "To get your eBook, just follow these steps:\n" +
+                                    "1. Click on the following link to download your eBook:\n" +
+                                    "https://bookhubb.pythonanywhere.com/download/2/\n" +
+                                    "If you run into any issues or have questions, feel free to reach out to us at support@bookhub.com\n" +
+                                    "Thanks for choosing our eBook. We hope you enjoy it!\n" +
+                                    "Best regards,\n" +
+                                    "BookHub\n" +
+                                    "https://bookhubb.pythonanywhere.com/"
+                                )
+
+                        from_email = 'noreply.bookhubb@gmail.com'  
+                        recipient_list = [myorder.email,]  
+                        send_mail(subject, message, from_email, recipient_list)
+                        
                     else:
                         book = get_object_or_404(models.Book, id=myorder.book.id)
                         book.status = 'sold'

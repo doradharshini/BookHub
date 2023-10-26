@@ -119,4 +119,4 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'noreply.bookhubb@gmail.com'
-EMAIL_HOST_PASSWORD = 'pirv zvyu zttk dhdj'
+EMAIL_HOST_PASSWORD = 'lfwb yxzu zdio kwer'
